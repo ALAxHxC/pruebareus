@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FIFA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+ <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+ <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+
+       <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+       <link rel="stylesheet" type="text/css" href="../../embed.css">
+       <link rel="stylesheet" type="text/css" href="../../minembed.css">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+   
+         <script type="text/javascript" src="../../endpoints.js"></script>  
+          <script type="text/javascript" src="../../persist.js"></script>  
+         <script type="text/javascript" src="../../modals.js"></script>  
+         <script type="text/javascript" src="../../data.js"></script>  
+         <script type="text/javascript" src="../../teams.js"></script>  
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<link rel="stylesheet" src="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+      <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    
+<style type="text/css">
+        button {
+    background-color: #e8effc;
+    cursor:pointer;
+    overflow: hidden;
+}
+      </style>
+      <script type="text/javascript">
+        //Equipos
+        var teams=null;
+        //Jugadores
+        var players=null;
+        //Cuerpo tecnico
+        var cuerpo_tecnico=null;
+        $(document).ready(function(){
+          //carga los equipos
+          ns.loadTeams($("#teams"));
+          //controla el formulario
+          $( "#teams" ).change(function() {
+            console.log(this.value)
+              if(this.value<0){
+                console.log("Muestra log");
+                $('#new_team').modal('show');
+                return;
+              }
+              ns.loadTeam(teams[this.value]);
+              console.log(teams[this.value]);
+          });
+
+        $('#players').change(function() {
+            if(this.value<0){
+              console.log("Creara jugador")
+            
+              //  $('#new_team').modal('show');
+                cleanDataPlayer();
+              return;
+            } 
+            ns.loadPlayer(players[this.value]);        
+        });
+        $('#tecnicos').change(function() {
+            if(this.value<0){
+               cleanDataTecnico();
+              return;
+            } 
+            ns.loadTecnico(cuerpo_tecnico[this.value]);
+            //ns.loadPlayer(players[this.value]);        
+        })
+          //controla el modal de equipos
+          $("#new_team").submit(function(event){
+            event.preventDefault();
+             showProcesandoDatos();
+              $('#new_team').modal('hide');
+              ns.createTeam();
+
+          });
+          $("#new_player_form").submit(function(event){
+             event.preventDefault();
+               ns.createPlayer(teams[$("#teams").val()]);
+          });
+           $("#new_tecnico_form").submit(function(event){
+             event.preventDefault();
+               ns.createTecnico(teams[$("#teams").val()]);
+          });
+           $("#reporte_button").click(function(event){
+            console.log("Click");
+            ns.loadReport();
+           });
+});
+</script>
+</head>
+<body class="page__content">
+  <div class="container-fluid bg-faded" id="content">
+    <div class="panel-body center-block" >
+    <div class="row" style="margin-top: 5px">
+        <div class="form-group">
+        
+          <div class="col-xs-6 col-sm-5 col-lg-6 pull-center">
+           <img  id="image_banner" src="https://vignette.wikia.nocookie.net/althistory/images/3/39/FIFA-Logo-old.png/revision/latest?cb=20170415135444&path-prefix=es" class="img-fluid" alt="Responsive image" 
+           >
+         </div>
+         <div class="col-xs-6 col-sm-5 col-lg-6 pull-center">
+              <img src="https://vignette.wikia.nocookie.net/althistory/images/3/39/FIFA-Logo-old.png/revision/latest?cb=20170415135444&path-prefix=es" class="img-fluid" alt="Responsive image" width="60%" height="60%" 
+              id="image_banner">
+             </div>
+                
+          </div>
+       <div class="row">
+         
+          
+   <div class="row" >
+                        <div class="form-group center-block">
+                          <div class="col-xs-12 col-sm-12 col-lg-12 pull-center items_form_single">
+                              <label for="">Equipos</label>
+                             <select  id="teams" name="teams"  class="form-control" 
+                             required
+                             width="70%" max>
+                             <option selected="true" value="-1">Nuevo equipo</option>
+                              </select>
+                             </div>
+                           </div>
+  </div>
+
+  
+  </div>
+</div>
+<div class="row" >
+                        <div class="form-group center-block">
+                          <div class="col-xs-12 col-sm-12 col-lg-12 pull-center items_form_single">
+                              <label for="">Datos de Equipo</label>
+                            
+                             </div>
+                           </div>
+<div class="col-xs-12 col-sm-12 col-lg-12 pull-center center-block">  
+    <div class="row form-group">
+     
+        <div class="row">
+           <div class="col-xs-4 col-sm-4 col-lg-4 pull-center">
+              <h5 id="name_team">Selecciona un Equipo</h5>
+          </div>
+        <div class="col-xs-3 col-sm-3 col-lg-3 pull-center">
+          <img  
+            id="image_team"
+           src="https://www.airedefiesta.com/images/product/1/large/pl_1_2_9113.jpg" alt="Credit to Author" 
+           class="image_button" alt="Responsive image"/>
+        </div>
+        <div class="col-xs-4 col-sm-4 col-lg-4 pull-center">
+          <img  
+            id="escudo_team"
+           src="https://www.airedefiesta.com/images/product/1/large/pl_1_2_9113.jpg" alt="Credit to Author" 
+           class="image_button" alt="Responsive image"/>
+        </div>
+     </div>
+  </div>
+</div>
+
+</div>
+         </div>
+         <div class="col-xs-12 col-sm-12 col-lg-12 pull-center center-block">  
+              <div class="row form-group">
+     
+        <div class="row">
+           <div class="col-xs-6 col-sm-6 col-lg-6 pull-center">
+               <label for="">Jugadores</label>
+                             <select  id="players" name="teams"  class="form-control" 
+                             required
+                             width="70%" max>
+                             <option  selected="true" value="-1">Nuevo Jugadores</option>
+                              </select>
+          </div>
+          <div class="col-xs-6 col-sm-6 col-lg-6 pull-center">
+               <label for="">Cuerpo técnico</label>
+                             <select  id="tecnicos" name="teams"  class="form-control" 
+                             required
+                             width="70%" max>
+                             <option selected="true" value="-1">Nuevo Cuerpo técnico</option>
+                              </select>
+          </div>
+      </div>
+      </div>
+
+        </div>
+        <div class="col-xs-12 col-sm-12 col-lg-12 pull-center center-block">  
+              <div class="row form-group">
+                
+                <button id="reporte_button">Ver reporte</button>
+
+              </div></div>
+        
+</div>
+</div>
+
+    <div class="modal fade" id="new_team" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="exampleModalLongTitle">Registro de Equipo</h3>
+</div>
+         <div class="modal-body">
+        <form action="" method="post" id="invocingupdate" name="invocingupdate" >
+         
+        
+                            <div class="form-group">
+                              <label  for="email">Nombre del equipo</label>
+                              <input id="new_team_name" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Nombre del equipo"
+                                 required 
+                                 />
+                           </div>
+                           <div class="form-group">
+                              <label  for="">Imagen</label>
+                               <input id="new_team_image" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="URL TEAM"
+                                 required 
+                                 />
+                              <!--<input id="new_team_image" type="file" name="file"  required>--><br>
+                           </div>
+                            <div class="form-group">
+                              <label  for="">Escudo</label>
+                              <input id="new_team_escudo" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="URL TEAM"
+                                 required 
+                                 />
+                             <!-- <input id="new_team_escudo" type="file" name="file" required>--><br>
+                           </div>
+            <div class="form-group">
+                            <input id="invocing_send" type="submit" value="¡Listo!"  class="labeled subscribe btn btn-success btn-lg btn-block"/>
+                          </div>
+        </form>
+        </button>
+      </div>
+     
+  
+      </div>
+      <div class="modal-footer">
+       
+      </div>
+    </div>
+    </div>
+
+
+
+
+
+<div class="modal fade" id="new_jugador_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="exampleModalLongTitle">Registro de Jugador</h3>
+</div>
+         <div class="modal-body">
+        <form  id="new_player_form" action="" method="post" id="invocingupdate" name="invocingupdate" >
+         
+        
+                            <div class="form-group">
+                              <label  for="email">Nombres del equipo</label>
+                              <input id="new_name_player" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Nombres"
+                                 required 
+                                 />
+                                  <input id="new_lastname_player" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Apellidos"
+                                 required 
+                                 />
+                           </div>
+                           <div class="form-group">
+                              <label  for="">Posición</label>
+                               <input id="new_posicion_player" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Delantero/Defensa/Volante"
+                                 required 
+                                 />
+                              <!--<input id="new_team_image" type="file" name="file"  required>--><br>
+                           </div>
+                            <div class="form-group">
+                              <label  for="">Titular</label>
+                               <input type="radio" id="new_titular_player"   class="form-control">  
+                             <!-- <input id="new_team_escudo" type="file" name="file" required>--><br>
+                           </div>
+                           <div class="form-group">
+                              <label  for="">Número</label>
+                               <input id="new_player_numero" name="team" 
+                                  type="number"
+                                 class="form-control" 
+                                 required 
+                                 />
+                              <!--<input id="new_team_image" type="file" name="file"  required>--><br>
+                           </div>
+                            <div class="form-group">
+                              <label  for="">Fecha de nacimiento</label>
+                               <input id="new_player_nacimiento" name="team" 
+                                  type="date"
+                                 class="form-control" 
+                                 required 
+                                 />
+                              <!--<input id="new_team_image" type="file" name="file"  required>--><br>
+                           </div>
+                             <div class="form-group">
+                              <label  for="">Imagen</label>
+                                <input id="new_team_image" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="URL TEAM"
+                                 required 
+                                 />
+                                 <img  
+                                  id="image_player"
+                                   src="https://vignette.wikia.nocookie.net/althistory/images/3/39/FIFA-Logo-old.png/revision/latest?cb=20170415135444&path-prefix=es" 
+                                   alt="Credit to Author" 
+                                   class="image_button" alt="Responsive image"/>
+                              <!--<input id="new_team_image" type="file" name="file"  required>--><br>
+                           </div>
+
+
+
+            <div class="form-group">
+                            <input id="send_player_team" type="submit" value="¡Listo!"  class="labeled subscribe btn btn-success btn-lg btn-block"/>
+                          </div>
+        </form>
+        </button>
+      </div>
+     
+  
+      </div>
+      <div class="modal-footer">
+       
+      </div>
+    </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<div class="modal fade" id="modal_report" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="exampleModalLongTitle">Reporte</h3>
+      </div>
+         <div class="modal-body">
+        <form  id="new_tecnico_form" action="" method="post" id="invocingupdate" name="invocingupdate" >
+         
+        
+                            <div class="form-group">
+                              <label  for="email">Total Equipos</label>
+                              <input id="total_equipos" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 readonly
+                                 />
+                              <label  for="email">Total Jugadores</label>
+                                  <input id="total_jugadores" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Apellidos"
+                                 readonly
+                                 />
+                           </div>
+                            <div class="form-group">
+                              <label  for="email">Total Suplentes</label>
+                              <input id="total_suplentes" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 readonly
+                                 />
+                              <label  for="email">Promedio de edad</label>
+                                  <input id="promedio_edad" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Apellidos"
+                                  readonly
+                                 />
+                                  <label  for="email">Promedio de jugadores por equipo</label>
+                                  <input id="promedio_suplentes" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Apellidos"
+                                  readonly
+                                 />
+                                 <label  for="email">Equipo con mas jugadores</label>
+                                  <input id="equipo_masjugadores" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Apellidos"
+                                  readonly
+                                 />
+                           </div>
+                           <div class="form-group">
+                             <button id="jugador_mas_joven">
+                              <label  for="email">Jugador mas joven</label>
+                            </button>
+                          </div>
+                           <div class="form-group">
+                             <button id="jugador_mas_viejo">
+                              <label  for="email">Jugador mas viejo</label>
+                            </button>
+                          </div>
+                          <div class="form-group">
+                             <button id="tecnico_mas_viejo">
+                              <label  for="email">Técnico mas viejo</label>
+                            </button>
+                          </div>
+                            <div class="form-group">
+                             <button id="promedio_edades">
+                              <label  for="email">Promedio de edades</label>
+                            </button>
+                          </div>
+                          <div class="form-group">
+                             <button id="tecnicos_nacionalidades">
+                              <label  for="email">Tecnicos y nacionalidades</label>
+                            </button>
+                          </div>
+                         <div class="form-group">
+                          
+                          </div>
+        </form>
+      </div>
+     
+  
+      </div>
+      <div class="modal-footer">
+       
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+<div class="modal fade" id="new_tecnico_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="exampleModalLongTitle">Registro de Cuerpo técnico</h3>
+</div>
+         <div class="modal-body">
+        <form  id="new_tecnico_form" action="" method="post" id="invocingupdate" name="invocingupdate" >
+         
+        
+                            <div class="form-group">
+                              <label  for="email">Nombres del equipo</label>
+                              <input id="new_name_tecnico" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Nombres"
+                                 required 
+                                 />
+                                  <input id="new_lastname_tecnico" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Apellidos"
+                                 required 
+                                 />
+                           </div>
+                            <div class="form-group">
+                              <label  for="">Fecha de nacimiento</label>
+                               <input id="new_tecnico_nacimiento" name="team" 
+                                  type="date"
+                                 class="form-control" 
+                                 required 
+                                 />
+                              <!--<input id="new_team_image" type="file" name="file"  required>--><br>
+                           </div>
+                            <div class="form-group">
+                              <label  for="email">Nacionalidad</label>
+                              <input id="new_tecnico_nacionalidad" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Nacionalidad"
+                                 required 
+                                 />
+                           </div>
+                            <div class="form-group">
+                              <label  for="email">Rol</label>
+                              <input id="new_tecnico_rol" name="team" 
+                                  type="text"
+                                 class="form-control" 
+                                 placeholder="Rol"
+                                 required 
+                                 />
+                           </div>
+            <div class="form-group">
+                            <input id="send_tecnico_team" type="submit" value="¡Listo!"  class="labeled subscribe btn btn-success btn-lg btn-block"/>
+                          </div>
+        </form>
+      </div>
+     
+      <div class="modal-footer">
+       
+      </div>
+    </div>
+
+
+
+
+</div>
+
+</body>
+
+
+<script>
+   function setTeams(list){
+    teams=list;
+   }
+   function setPlayers(list){
+    players=list;
+   }
+
+   function setCuerpoTecnico(list){
+    cuerpo_tecnico=list;
+   }
+  </script>
